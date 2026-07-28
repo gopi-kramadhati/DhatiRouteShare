@@ -1,0 +1,3 @@
+# Copy the maps.apiKey line into android/local.properties after Flutter creates
+# that machine-specific file. Never commit the real local.properties file.
+maps.apiKey=YOUR_ANDROID_MAPS_API_KEY

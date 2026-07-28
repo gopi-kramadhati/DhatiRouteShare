@@ -1,0 +1,13 @@
+# Copy this file to `key.properties` (same folder) and fill in your values.
+# key.properties is git-ignored — never commit your real keystore or passwords.
+#
+# Create the upload keystore first (you choose the passwords):
+#   keytool -genkey -v -keystore ~/routeshare-upload.jks \
+#     -keyalg RSA -keysize 2048 -validity 10000 -alias upload
+#
+# Then set the four values below and run:  flutter build appbundle
+
+storePassword=YOUR_KEYSTORE_PASSWORD
+keyPassword=YOUR_KEY_PASSWORD
+keyAlias=upload
+storeFile=/absolute/path/to/routeshare-upload.jks
