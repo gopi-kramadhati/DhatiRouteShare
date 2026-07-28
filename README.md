@@ -25,15 +25,56 @@ JSON files, KML files, or stop-by-stop Google Maps links.
 | Android | Supported (hands-free Guided Drive + floating card) |
 | iOS | Planned (tap-a-notification to advance each leg; Apple platform limits prevent background auto-launch) |
 
+## Google Maps API key (required)
+
+**You must supply your own Google Maps API key to build RouteShare.** The
+project's key is deliberately not committed — it lives only in
+`android/local.properties`, which is git-ignored — so every person who clones the
+repo provides their own.
+
+To get set up:
+
+1. In the [Google Cloud Console](https://console.cloud.google.com/), create a
+   project and enable **Maps SDK for Android**. A billing account must be
+   attached to the project, though map *display* itself is free.
+2. Create an API key and **restrict it** to:
+   - Application: your Android app package `com.gopikramadhati.routeshare`
+     **plus your own signing SHA-1**. For local development this is your debug
+     keystore's SHA-1 (`keytool -list -v -keystore ~/.android/debug.keystore -alias androiddebugkey -storepass android`). Your debug SHA-1 is different from
+     anyone else's, so restrict the key to yours.
+   - API: **Maps SDK for Android** only.
+3. Add the key to `android/local.properties` (Flutter creates this file on first
+   build; you can also copy `android/local.properties.example`):
+
+   ```properties
+   maps.apiKey=YOUR_OWN_ANDROID_MAPS_KEY
+   ```
+
+   It is injected into the manifest at build time via the `${MAPS_API_KEY}`
+   placeholder — the key is never hardcoded in source.
+
+Note: the in-app **map display** needs this key. The hands-free **Guided Drive**
+hands off to your installed Google Maps *app* via an intent and needs no key, so
+route recording and navigation hand-off still work even before the key is set —
+you'll just see a blank base map inside RouteShare until it is.
+
 ## Development setup
 
 1. Install the Flutter SDK version compatible with `pubspec.yaml`.
 2. Run `flutter pub get`.
-3. Copy the `maps.apiKey` line from `android/local.properties.example` into
-   the machine-specific `android/local.properties` file.
-4. Create an Android Maps SDK key restricted to the application ID
-   `com.gopikramadhati.routeshare` and the relevant signing certificate SHA-1.
-5. Run `flutter analyze`, `flutter test`, and `flutter run`.
+3. Add your Maps API key as described in
+   [Google Maps API key (required)](#google-maps-api-key-required) above.
+4. Run `flutter analyze`, `flutter test`, and `flutter run`.
+
+## Troubleshooting
+
+**The map is blank / grey inside the app.** This almost always means the Maps
+API key is missing, invalid, or not restricted correctly. Check that
+`android/local.properties` contains a valid `maps.apiKey`, that **Maps SDK for
+Android** is enabled on the key's Cloud project, that billing is attached, and
+that the key's app restriction includes *your* debug SHA-1. Recording and the
+Google Maps hand-off work regardless — only the embedded base map depends on the
+key.
 
 ## Android release signing
 
