@@ -19,7 +19,7 @@ import 'package:flutter_overlay_window/flutter_overlay_window.dart';
 
 /// Bump this on every change so we can tell at a glance (and in the debug log)
 /// exactly which build is running on the device.
-const String kAppVersion = 'v1.0.1 · b64 (smart retry + stopped-car arrival)';
+const String kAppVersion = 'v1.0.1 · b65 (strip unused media permissions)';
 
 /// Clean, public-facing version shown on the splash and About screens.
 const String kVersionName = '1.0.0'; // keep in sync with pubspec `version:`
