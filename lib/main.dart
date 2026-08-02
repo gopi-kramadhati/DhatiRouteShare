@@ -19,7 +19,7 @@ import 'package:flutter_overlay_window/flutter_overlay_window.dart';
 
 /// Bump this on every change so we can tell at a glance (and in the debug log)
 /// exactly which build is running on the device.
-const String kAppVersion = 'v1.0.1 · b65 (strip unused media permissions)';
+const String kAppVersion = 'v1.0.1 · b66 (request notification permission)';
 
 /// Clean, public-facing version shown on the splash and About screens.
 const String kVersionName = '1.0.0'; // keep in sync with pubspec `version:`
@@ -845,7 +845,23 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     );
   }
 
+  /// Android 13+ requires the POST_NOTIFICATIONS permission to be granted at
+  /// runtime, otherwise the foreground-service notification is silently hidden
+  /// (the service still runs, but the user sees nothing). Ask for it before we
+  /// start the service so the tracking notification is actually visible.
+  Future<void> _ensureNotificationPermission() async {
+    try {
+      final status = await FlutterForegroundTask.checkNotificationPermission();
+      if (status != NotificationPermission.granted) {
+        await FlutterForegroundTask.requestNotificationPermission();
+      }
+    } catch (e) {
+      AppLogger.log('Notification permission request failed: $e');
+    }
+  }
+
   Future<void> _startForegroundService(String message) async {
+    await _ensureNotificationPermission();
     final result = await FlutterForegroundTask.startService(
       serviceId: 256,
       notificationTitle: 'RouteShare',
@@ -2092,6 +2108,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       return;
     }
     if (!await _ensurePermission()) return;
+    await _ensureNotificationPermission();
 
     // Start from the leg nearest the user's current position (so if they begin
     // partway along the route, earlier legs are treated as done).
