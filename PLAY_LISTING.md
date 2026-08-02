@@ -10,61 +10,49 @@ Everything below is copy-paste ready for the Google Play Console. Values in
 **App name (30 char max)**
 
 ```
-RouteShare: Record & Guide
+RouteShare: Breadcrumb Trails
 ```
 
 **Short description (80 char max)**
 
 ```
-Record any route, mark your stops, and drive it hands-free with Google Maps.
+Leave a breadcrumb trail as you drive, then follow it back — no map app needed.
 ```
 
 **Full description (4000 char max)**
 
 ```
-RouteShare turns any drive into a route you can save, share, and re-drive later
-— without fiddling with your phone on the road.
+RouteShare is a breadcrumb-trail navigator. As you drive, it quietly records the path you take — a trail of digital breadcrumbs — so you can retrace it later, share it, or let someone else follow the exact same route.
 
-RECORD AS YOU DRIVE
-Start recording and RouteShare traces your path in the background, even with the
-screen off. Tap once to drop a numbered stop at any turn, landmark, or place you
-want to remember. Your start and finish points are added automatically.
+LEAVE A BREADCRUMB TRAIL
+Start recording and RouteShare traces your path in the background, even with the screen off. Tap once to drop a numbered stop at any turn, landmark, or place worth remembering. Your start and finish points are added automatically. Great for trails without signs, new delivery routes, field sites, off-grid drives, or anywhere you'd rather not depend on a map service.
 
-DRIVE IT HANDS-FREE (Android)
-Guided Drive hands each leg of your saved route to Google Maps and automatically
-loads the next leg as you arrive at each stop — so you get full turn-by-turn
-navigation through every point without touching your phone. A small floating
-card shows the next stop and lets you resume or end the drive.
+FOLLOW IT BACK — NO GOOGLE MAPS REQUIRED
+RouteShare has its own built-in map and follow mode. It shows your live position against the recorded trail, tells you when you're on track, and alerts you as you approach each stop — all inside the app. You don't need the Google Maps app, or any other navigation app, to retrace your route.
 
-FOLLOW AND STAY ON TRACK
-Following a saved route shows your live position against the planned path and
-alerts you as you approach each stop, so you always know what's coming next.
+OPTIONAL: HANDS-FREE GUIDED DRIVE WITH GOOGLE MAPS
+If you'd like full turn-by-turn voice navigation, Guided Drive is there as an option. It hands each leg of your route to Google Maps and automatically loads the next leg as you reach each stop, so you get turn-by-turn through every point without touching your phone. A small floating card shows the next stop and lets you resume or end the drive. This is a convenience — not a requirement.
 
 SHARE A ROUTE IN ONE TAP
-Send any route to friends as a file, a KML file, or a Google Maps link. Perfect
-for group drives, delivery runs, field visits, or sharing a scenic route you
-loved.
+Send any trail to friends as a file, a KML file, or a Google Maps link. Perfect for group drives, delivery runs, field visits, or sharing a scenic route you loved.
 
 YOUR DATA STAYS YOURS
-Routes are stored only on your device. There are no accounts, no sign-in, and
-nothing is uploaded to any server. You share a route only when you choose to.
+Routes are stored only on your device. There are no accounts, no sign-in, and nothing is uploaded to any server. You share a route only when you choose to.
 
 FEATURES
-• One-tap route recording with background/screen-off tracking
+• One-tap breadcrumb recording with background/screen-off tracking
 • Numbered stops (up to 20) with automatic start and end points
-• Guided Drive: automatic leg-by-leg Google Maps navigation (Android)
-• Follow mode with on-track and approaching-stop alerts
+• Built-in follow mode — retrace your trail without any other app
+• On-track and approaching-stop alerts
+• Optional hands-free Guided Drive via Google Maps
 • Save, rename, reload, and delete routes
 • Share as file, KML, or Google Maps link
-
-RouteShare uses the Google Maps app for turn-by-turn navigation. A data
-connection and the Google Maps app are recommended for the best experience.
 
 Created by Gopi Kramadhati.
 ```
 
 **Category:** Maps & Navigation
-**Contact email:** gopi@sigsenz.com
+**Contact email:** gopikramadhati@gmail.com
 **Privacy policy URL:** **[host PRIVACY_POLICY.md and paste the public URL]**
 
 **Graphics still needed (you supply):**

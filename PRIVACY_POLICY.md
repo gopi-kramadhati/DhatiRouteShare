@@ -10,7 +10,7 @@ accounts.**
 ## Who we are
 
 RouteShare is developed by Gopi Kramadhati.
-Contact: **gopi@sigsenz.com**
+Contact: **gopikramadhati@gmail.com**
 
 ## What data the app uses
 
@@ -78,4 +78,4 @@ location with a new "Last updated" date.
 
 ## Contact
 
-Questions about privacy? Email **gopi@sigsenz.com**.
+Questions about privacy? Email **gopikramadhati@gmail.com**.
