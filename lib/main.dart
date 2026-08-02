@@ -19,7 +19,7 @@ import 'package:flutter_overlay_window/flutter_overlay_window.dart';
 
 /// Bump this on every change so we can tell at a glance (and in the debug log)
 /// exactly which build is running on the device.
-const String kAppVersion = 'v1.0.1 · b66 (request notification permission)';
+const String kAppVersion = 'v1.0.1 · b67 (clear orphaned tracking service on launch)';
 
 /// Clean, public-facing version shown on the splash and About screens.
 const String kVersionName = '1.0.0'; // keep in sync with pubspec `version:`
@@ -665,6 +665,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     _initForegroundTask();
     _initTts();
     _loadSettings();
+    // Clear any foreground service orphaned by an unclean shutdown of a prior
+    // session (zombie "GPS active" notification that otherwise stays till reboot).
+    _recoverStaleServices();
     // Subscribe to the overlay message stream ONCE — it's a single-subscription
     // stream, so listening again per guided drive throws "already listened".
     try {
@@ -881,6 +884,68 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
   Future<void> _stopForegroundService() async {
     await FlutterForegroundTask.stopService();
+  }
+
+  // ── Stale-session recovery ─────────────────────────────────────────────────
+  // If the app process is torn down mid-session (e.g. swiped away, or killed by
+  // the OS) without a clean Stop, geolocator can leave its location foreground
+  // service running "sticky" with no Dart listener — a zombie notification that
+  // stays until reboot. We write a flag while a session is active and clear it
+  // on a clean stop; on next launch a lingering flag means the previous session
+  // ended uncleanly, so we stop any leftover foreground service.
+  Future<File> _sessionFlagFile() async {
+    final dir = await getApplicationDocumentsDirectory();
+    return File('${dir.path}/session_active.flag');
+  }
+
+  Future<void> _setSessionActive(bool active) async {
+    try {
+      final f = await _sessionFlagFile();
+      if (active) {
+        await f.writeAsString(DateTime.now().toIso8601String());
+      } else if (await f.exists()) {
+        await f.delete();
+      }
+    } catch (e) {
+      AppLogger.log('Session flag write failed: $e');
+    }
+  }
+
+  Future<void> _recoverStaleServices() async {
+    bool unclean = false;
+    try {
+      unclean = await (await _sessionFlagFile()).exists();
+    } catch (_) {}
+    if (!unclean) return;
+    AppLogger.log('Stale session flag found — clearing leftover services');
+    // FlutterForegroundTask: a static stop clears its notification if it lingered.
+    try {
+      if (await FlutterForegroundTask.isRunningService) {
+        await FlutterForegroundTask.stopService();
+      }
+    } catch (_) {}
+    // Geolocator: re-bind to its single foreground service with a foreground
+    // config (so Android treats it as the same service) and immediately cancel,
+    // which stops the service and removes the zombie notification.
+    if (Platform.isAndroid) {
+      try {
+        final sub = Geolocator.getPositionStream(
+          locationSettings: AndroidSettings(
+            accuracy: LocationAccuracy.lowest,
+            distanceFilter: 0,
+            foregroundNotificationConfig: const ForegroundNotificationConfig(
+              notificationTitle: 'RouteShare',
+              notificationText: 'Finishing up…',
+            ),
+          ),
+        ).listen((_) {});
+        await Future.delayed(const Duration(milliseconds: 400));
+        await sub.cancel();
+      } catch (e) {
+        AppLogger.log('Geolocator stale-service cleanup skipped: $e');
+      }
+    }
+    await _setSessionActive(false);
   }
 
   // ── Helpers ────────────────────────────────────────────────────────────────
@@ -1450,6 +1515,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
     _moveCamera(LatLng(pos.latitude, pos.longitude), zoom: 17);
     _startLocationTracking();
+    await _setSessionActive(true);
     await _startForegroundService('Recording route — ${routePoints.length} pts');
     // Keep the screen on while recording (auto-timeout only — a manual power
     // press still turns it off).
@@ -1488,6 +1554,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     await _saveRoute(name: name);
     await listSavedRoutes();
     await _stopForegroundService();
+    await _setSessionActive(false);
     await WakelockPlus.disable(); // release screen wake lock
     AppLogger.log('Route saved OK with ${waypoints.length} waypoints');
 
@@ -1508,6 +1575,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     AppLogger.log('Recording DISCARDED — ${routePoints.length} pts thrown away');
     _stopLocationTracking();
     await _stopForegroundService();
+    await _setSessionActive(false);
     await WakelockPlus.disable(); // release screen wake lock
     try {
       final dir = await getApplicationDocumentsDirectory();
@@ -1865,6 +1933,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     _moveCamera(LatLng(pos.latitude, pos.longitude), zoom: 17);
 
     _startLocationTracking();
+    await _setSessionActive(true);
     await _startForegroundService('Following route: $_loadedRouteName');
     await WakelockPlus.enable();   // keep screen ON while following
     AppLogger.log('Following STARTED — screen wake lock enabled');
@@ -1874,6 +1943,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     AppLogger.log('Following STOPPED');
     _stopLocationTracking();
     await _stopForegroundService();
+    await _setSessionActive(false);
     await WakelockPlus.disable();  // release screen wake lock
     setState(() {
       _mode = AppMode.idle;
@@ -2109,6 +2179,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     }
     if (!await _ensurePermission()) return;
     await _ensureNotificationPermission();
+    await _setSessionActive(true);
 
     // Start from the leg nearest the user's current position (so if they begin
     // partway along the route, earlier legs are treated as done).
@@ -2228,6 +2299,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       await _guideStream?.cancel();
     } catch (_) {}
     _guideStream = null;
+    await _setSessionActive(false);
     // Keep _overlaySub alive for the app's lifetime (single-subscription
     // stream — cancelled only in dispose).
     try {
