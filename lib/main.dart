@@ -16,10 +16,11 @@ import 'package:flutter_tts/flutter_tts.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:open_filex/open_filex.dart';
 import 'package:flutter_overlay_window/flutter_overlay_window.dart';
+import 'package:receive_sharing_intent/receive_sharing_intent.dart';
 
 /// Bump this on every change so we can tell at a glance (and in the debug log)
 /// exactly which build is running on the device.
-const String kAppVersion = 'v1.0.1 · b67 (clear orphaned tracking service on launch)';
+const String kAppVersion = 'v1.0.1 · b68 (import shared route files)';
 
 /// Clean, public-facing version shown on the splash and About screens.
 const String kVersionName = '1.0.0'; // keep in sync with pubspec `version:`
@@ -641,6 +642,10 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   StreamSubscription? _overlaySub;
   bool _overlayActive = false;
 
+  // Incoming shared route files (opened from WhatsApp, Drive, a file manager…)
+  StreamSubscription<List<SharedMediaFile>>? _intentSub;
+  bool _handlingSharedFile = false; // guard against double-handling
+
   // Auto-zoom while following
   bool _userInteracting = false;
   Timer? _resumeTimer;
@@ -685,6 +690,38 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       AppLogger.log('overlayListener subscribe failed: $e');
     }
     AppLogger.init().then((_) => _checkAutoSave());
+    _initSharedFileIntake();
+  }
+
+  /// Listens for route files opened from other apps (WhatsApp, Drive, a file
+  /// manager, the system share sheet). Handles both the file that launched the
+  /// app and files received while it is already running.
+  void _initSharedFileIntake() {
+    // File the app was launched with (cold start via "Open with RouteShare").
+    ReceiveSharingIntent.instance.getInitialMedia().then((files) {
+      if (files.isNotEmpty) {
+        _handleSharedFiles(files);
+        // Tell the plugin we've consumed it so it isn't re-delivered on resume.
+        ReceiveSharingIntent.instance.reset();
+      }
+    });
+    // Files received while the app is already open.
+    _intentSub = ReceiveSharingIntent.instance.getMediaStream().listen(
+      _handleSharedFiles,
+      onError: (e) => AppLogger.log('Shared-intent stream error: $e'),
+    );
+  }
+
+  Future<void> _handleSharedFiles(List<SharedMediaFile> files) async {
+    if (_handlingSharedFile) return;
+    if (files.isEmpty) return;
+    final path = files.first.path;
+    _handlingSharedFile = true;
+    try {
+      await _importRouteFromFile(File(path), confirmFirst: true);
+    } finally {
+      _handlingSharedFile = false;
+    }
   }
 
   Future<void> _loadSettings() async {
@@ -794,6 +831,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     positionStream?.cancel();
     _guideStream?.cancel();
     _overlaySub?.cancel();
+    _intentSub?.cancel();
     FlutterOverlayWindow.closeOverlay();
     _resumeTimer?.cancel();
     _tts.stop();
@@ -1815,7 +1853,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     if (routePoints.isEmpty) return;
     final dir = await getApplicationDocumentsDirectory();
     final ts = DateTime.now().toIso8601String().replaceAll(':', '-');
-    final file = File('${dir.path}/route_$ts.json');
+    final file = File('${dir.path}/route_$ts.routeshare');
     await file.writeAsString(jsonEncode(_routeToJson(name: name)));
     // Clean up the auto-save file now that we have a proper save
     final autoSave = File('${dir.path}/route_autosave.json');
@@ -1962,8 +2000,10 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         .whereType<File>()
         .where((f) {
           final n = f.path.split('/').last;
+          // New routes use the .routeshare extension; .json is legacy data that
+          // is still read (to be discontinued later). Both hold JSON content.
           return n.startsWith('route_') &&
-              n.endsWith('.json') &&
+              (n.endsWith('.routeshare') || n.endsWith('.json')) &&
               n != 'route_autosave.json';
         })
         .toList();
@@ -2847,24 +2887,35 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   Future<void> importRouteFile() async {
     final result = await FilePicker.platform.pickFiles(
       type: FileType.custom,
-      allowedExtensions: ['json'],
+      allowedExtensions: ['json', 'routeshare'],
     );
     if (result == null) return;
-
     final selectedPath = result.files.single.path;
     if (selectedPath == null) return;
+    // User already picked the file explicitly, so no extra confirmation needed.
+    await _importRouteFromFile(File(selectedPath), confirmFirst: false);
+  }
 
-    final selectedFile = File(selectedPath);
-    if (await selectedFile.length() > 20 * 1024 * 1024) {
+  /// Reads, sanity-checks, and imports a route file. Used by the in-app
+  /// "Import" picker (confirmFirst: false) and by files opened from other apps
+  /// such as WhatsApp or Drive (confirmFirst: true — asks before saving).
+  Future<void> _importRouteFromFile(File file,
+      {required bool confirmFirst}) async {
+    if (!await file.exists()) {
+      _showSnack('Could not open the shared file');
+      return;
+    }
+    if (await file.length() > 20 * 1024 * 1024) {
       _showSnack('Route file is too large');
       return;
     }
 
     late final String jsonString;
+    late final ({List<LatLng> points, List<RouteWaypoint> waypoints, String? name})
+        parsed;
     try {
-      jsonString = await selectedFile.readAsString();
-      final routeData = jsonDecode(jsonString);
-      final parsed = _parseRouteJson(routeData);
+      jsonString = await file.readAsString();
+      parsed = _parseRouteJson(jsonDecode(jsonString));
       if (parsed.points.isEmpty) {
         throw const FormatException('Route contains no points');
       }
@@ -2873,13 +2924,42 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       return;
     }
 
+    // Ask before importing a file that arrived from another app.
+    if (confirmFirst) {
+      if (!mounted) return;
+      final label = parsed.name?.trim().isNotEmpty == true
+          ? '"${parsed.name!.trim()}"'
+          : 'this route';
+      final ok = await showDialog<bool>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: const Text('Import shared route?'),
+          content: Text('Import $label into RouteShare?\n\n'
+              '${parsed.points.length} track points · '
+              '${parsed.waypoints.length} stops'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.pop(ctx, true),
+              child: const Text('Import'),
+            ),
+          ],
+        ),
+      );
+      if (ok != true) return;
+    }
+
     final dir = await getApplicationDocumentsDirectory();
     final ts = DateTime.now().toIso8601String().replaceAll(':', '-');
-    final importedName = 'route_imported_$ts.json';
+    final importedName = 'route_imported_$ts.routeshare';
     await File('${dir.path}/$importedName').writeAsString(jsonString);
 
     await listSavedRoutes();
     await loadRouteFromFile(importedName);
+    _showSnack('Route imported');
   }
 
   // ── Dialog ─────────────────────────────────────────────────────────────────
