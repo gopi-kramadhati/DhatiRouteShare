@@ -33,7 +33,9 @@ if (releaseRequested && !keystorePropertiesFile.exists()) {
 
 android {
     namespace = "com.gopikramadhati.routeshare"
-    compileSdk = flutter.compileSdkVersion
+    // receive_sharing_intent requires compileSdk 37. Only compileSdk is bumped;
+    // targetSdk/minSdk stay on Flutter's defaults.
+    compileSdk = 37
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
