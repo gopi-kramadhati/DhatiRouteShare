@@ -23,7 +23,7 @@ import 'package:receive_sharing_intent/receive_sharing_intent.dart';
 const String kAppVersion = 'v1.0.1 · b70 (import shared routes; .json)';
 
 /// Clean, public-facing version shown on the splash and About screens.
-const String kVersionName = '1.0.0'; // keep in sync with pubspec `version:`
+const String kVersionName = '1.0.1'; // keep in sync with pubspec `version:`
 
 /// Release year for the copyright line. Bump this when you publish a build in
 /// a new year — it is NOT the year the app happens to be run.
