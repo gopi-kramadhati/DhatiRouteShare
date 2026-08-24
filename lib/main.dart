@@ -20,7 +20,7 @@ import 'package:receive_sharing_intent/receive_sharing_intent.dart';
 
 /// Bump this on every change so we can tell at a glance (and in the debug log)
 /// exactly which build is running on the device.
-const String kAppVersion = 'v1.0.1 · b68 (import shared route files)';
+const String kAppVersion = 'v1.0.1 · b69 (import shared routes; .gkrs extension)';
 
 /// Clean, public-facing version shown on the splash and About screens.
 const String kVersionName = '1.0.0'; // keep in sync with pubspec `version:`
@@ -1853,7 +1853,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     if (routePoints.isEmpty) return;
     final dir = await getApplicationDocumentsDirectory();
     final ts = DateTime.now().toIso8601String().replaceAll(':', '-');
-    final file = File('${dir.path}/route_$ts.routeshare');
+    final file = File('${dir.path}/route_$ts.gkrs');
     await file.writeAsString(jsonEncode(_routeToJson(name: name)));
     // Clean up the auto-save file now that we have a proper save
     final autoSave = File('${dir.path}/route_autosave.json');
@@ -2000,10 +2000,10 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         .whereType<File>()
         .where((f) {
           final n = f.path.split('/').last;
-          // New routes use the .routeshare extension; .json is legacy data that
-          // is still read (to be discontinued later). Both hold JSON content.
+          // New routes use the .gkrs extension; .json is legacy data that is
+          // still read (to be discontinued later). Both hold JSON content.
           return n.startsWith('route_') &&
-              (n.endsWith('.routeshare') || n.endsWith('.json')) &&
+              (n.endsWith('.gkrs') || n.endsWith('.json')) &&
               n != 'route_autosave.json';
         })
         .toList();
@@ -2887,7 +2887,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   Future<void> importRouteFile() async {
     final result = await FilePicker.platform.pickFiles(
       type: FileType.custom,
-      allowedExtensions: ['json', 'routeshare'],
+      allowedExtensions: ['json', 'gkrs'],
     );
     if (result == null) return;
     final selectedPath = result.files.single.path;
@@ -2954,7 +2954,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
     final dir = await getApplicationDocumentsDirectory();
     final ts = DateTime.now().toIso8601String().replaceAll(':', '-');
-    final importedName = 'route_imported_$ts.routeshare';
+    final importedName = 'route_imported_$ts.gkrs';
     await File('${dir.path}/$importedName').writeAsString(jsonString);
 
     await listSavedRoutes();

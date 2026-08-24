@@ -53,7 +53,7 @@
 
             <!-- Open a shared route file: tap a route in WhatsApp, Drive, a file
                  manager, etc. and offer to import it into RouteShare. Route files
-                 are JSON, saved with the .routeshare extension (legacy .json is
+                 are JSON, saved with the .gkrs extension (legacy .json is
                  still accepted). -->
             <!-- application/json (reliable via WhatsApp, where .json => this MIME) -->
             <intent-filter android:label="Import into RouteShare">
@@ -68,16 +68,16 @@
                 <category android:name="android.intent.category.DEFAULT"/>
                 <data android:mimeType="application/json"/>
             </intent-filter>
-            <!-- Custom .routeshare extension (file managers / Drive that keep the
+            <!-- Custom .gkrs extension (file managers / Drive that keep the
                  filename). Matches by path so it won't grab unrelated files. -->
             <intent-filter android:label="Import into RouteShare">
                 <action android:name="android.intent.action.VIEW"/>
                 <category android:name="android.intent.category.DEFAULT"/>
                 <category android:name="android.intent.category.BROWSABLE"/>
                 <data android:scheme="content" android:host="*"
-                      android:mimeType="*/*" android:pathPattern=".*\\.routeshare"/>
+                      android:mimeType="*/*" android:pathPattern=".*\\.gkrs"/>
                 <data android:scheme="file" android:host="*"
-                      android:mimeType="*/*" android:pathPattern=".*\\.routeshare"/>
+                      android:mimeType="*/*" android:pathPattern=".*\\.gkrs"/>
             </intent-filter>
         </activity>
 
