@@ -20,7 +20,7 @@ import 'package:receive_sharing_intent/receive_sharing_intent.dart';
 
 /// Bump this on every change so we can tell at a glance (and in the debug log)
 /// exactly which build is running on the device.
-const String kAppVersion = 'v1.0.1 · b70 (import shared routes; .json)';
+const String kAppVersion = 'v1.0.1 · b71 (import shared routes; broadened .json matching)';
 
 /// Clean, public-facing version shown on the splash and About screens.
 const String kVersionName = '1.0.1'; // keep in sync with pubspec `version:`
