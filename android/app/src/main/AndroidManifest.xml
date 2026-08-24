@@ -53,19 +53,35 @@
 
             <!-- Open a shared route file: tap a route in WhatsApp, Drive, a file
                  manager, etc. and offer to import it into RouteShare. Route files
-                 are JSON (application/json), which messengers map reliably by the
-                 .json extension so RouteShare shows up in "Open with". -->
+                 are JSON. We match a few ways because different senders tag .json
+                 with different MIME types. -->
+            <!-- 1. JSON MIME types -->
             <intent-filter android:label="Import into RouteShare">
                 <action android:name="android.intent.action.VIEW"/>
                 <category android:name="android.intent.category.DEFAULT"/>
                 <category android:name="android.intent.category.BROWSABLE"/>
                 <data android:scheme="content" android:mimeType="application/json"/>
                 <data android:scheme="file" android:mimeType="application/json"/>
+                <data android:scheme="content" android:mimeType="text/json"/>
+                <data android:scheme="file" android:mimeType="text/json"/>
             </intent-filter>
+            <!-- 2. Any file whose name ends in .json (covers generic MIME from
+                 file managers where the URI keeps the filename) -->
+            <intent-filter android:label="Import into RouteShare">
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data android:scheme="content" android:host="*"
+                      android:mimeType="*/*" android:pathPattern=".*\\.json"/>
+                <data android:scheme="file" android:host="*"
+                      android:mimeType="*/*" android:pathPattern=".*\\.json"/>
+            </intent-filter>
+            <!-- 3. Shared via the system share sheet -->
             <intent-filter android:label="Import into RouteShare">
                 <action android:name="android.intent.action.SEND"/>
                 <category android:name="android.intent.category.DEFAULT"/>
                 <data android:mimeType="application/json"/>
+                <data android:mimeType="text/json"/>
             </intent-filter>
         </activity>
 
