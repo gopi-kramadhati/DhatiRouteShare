@@ -44,7 +44,7 @@ platform-specific Guided Drive design.
 - [ ] `NSLocationAlwaysAndWhenInUseUsageDescription` — same, for background recording.
 - [ ] `UIBackgroundModes` → include `location`.
 - [ ] `LSApplicationQueriesSchemes` → `comgooglemaps`, `maps` (so we can open Google/Apple Maps).
-- [ ] For file import: `CFBundleDocumentTypes` (open route files) + `UTExportedTypeDeclarations` for the `.routeshare` type, and the receive_sharing_intent **Share Extension** target.
+- [ ] For file import: `CFBundleDocumentTypes` for `public.json` / the `.json` route files, and the receive_sharing_intent **Share Extension** target. (Route files are plain `.json`; no custom extension.)
 
 ## 5. Dart code changes (make it build + behave on iOS)
 

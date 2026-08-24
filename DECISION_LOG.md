@@ -68,14 +68,19 @@ at the bottom of each section.
   horse emblem is original artwork; surrounding elements are AI). Honest disclosure
   doesn't hurt approval.
 
-## Sharing / import (b68 — versionCode 5, not yet built/tested)
+## Sharing / import (shipped in 1.0.1 / versionCode 6)
 
-- Adopted a custom **`.routeshare`** extension for newly created and imported routes;
-  legacy `.json` is still read (to be discontinued later). Content is JSON either way,
-  so the parser is unchanged.
 - Added **tap-to-import**: `receive_sharing_intent` + manifest VIEW/SEND intent filters
-  for `application/json` (reliable via WhatsApp) and the `.routeshare` extension.
-  Imported files get a **sanity-check + "Import this route?" confirmation** before saving.
+  for `application/json`. A friend shares a route → recipient taps the file → RouteShare
+  opens with a **sanity-check + "Import this route?" confirmation** before saving.
+- **Route files stay `.json`.** We tried custom extensions (`.routeshare`, then `.gkrs`)
+  for branding, but they **broke tap-to-open via messengers**: Android matches "Open with"
+  by MIME type, and WhatsApp maps a *known* extension like `.json` → `application/json`
+  (so RouteShare appears) but an *unknown* extension → generic `octet-stream` (so RouteShare
+  does NOT appear, only generic handlers like Google/Wallet do). The `content://` URIs
+  messengers hand over usually omit the filename, so a filename-pattern match for a custom
+  extension fails too. Conclusion: `.json` is required for reliable tap-to-import; the
+  branding of a custom extension isn't worth losing the headline feature.
 
 ## Icons
 
@@ -116,5 +121,7 @@ at the bottom of each section.
 - b65 / 1.0.0+2 — strip unused media permissions.
 - b66 / 1.0.0+3 — request notification permission (Android 13+).
 - b67 / 1.0.0+4 — clear orphaned tracking service on launch. **(Live in closed testing.)**
-- b68 / 1.0.0+5 — shared-file import + `.routeshare` + clean launcher icon.
-  **Committed, NOT yet built or tested — this is the next update.**
+- b68 / 1.0.0+5 — shared-file import + custom extension (later reverted) + clean launcher icon.
+- b70 / — reverted the custom extension back to `.json` (reliable tap-to-import).
+- 1.0.1 / versionCode 6 — the shipped update: tap-to-import shared routes (`.json`),
+  runtime notification permission, orphaned-service cleanup, clean launcher icon.

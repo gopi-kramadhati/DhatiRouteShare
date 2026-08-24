@@ -86,12 +86,13 @@ flutter build appbundle --release
 
 ## Current project state (as of this handoff)
 
-- **Android app is live in closed testing** (versionCode 4 / 1.0.0+4).
-- **versionCode 5 (1.0.0+5) is committed but NOT yet built or tested.** It adds:
-  shared-file import + `.routeshare` extension, runtime notification permission,
-  orphaned-service cleanup, and the cleaned launcher icon. Run `flutter pub get`
-  (new dependency `receive_sharing_intent`) then build + test on-device before
-  uploading it as the next update.
+- **Android app is LIVE in production** (first release was versionCode 4 / 1.0.0).
+- **versionCode 6 (1.0.1) is the next update — tested on-device, ready to ship.** It adds:
+  tap-to-import shared routes (`.json` via `receive_sharing_intent`), runtime
+  notification permission, orphaned-service cleanup, and the cleaned launcher icon.
+  Build with `flutter pub get` (dependency `receive_sharing_intent`) +
+  `flutter build appbundle --release`, then Play Console → Production → new release.
+  Note: `compileSdk 37` is required by `receive_sharing_intent` (set in build.gradle.kts).
 - **iOS not started** — see `IOS_CHECKLIST.md`.
 - Reference docs in the repo: `README.md`, `PRIVACY_POLICY.md`, `PLAY_LISTING.md`,
   `RELEASE_READINESS.md`, `IOS_CHECKLIST.md`, `CONTRIBUTING.md`.
