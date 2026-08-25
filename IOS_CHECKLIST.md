@@ -1,19 +1,30 @@
 # RouteShare — iOS build checklist
 
 Porting the Android app to iPhone. The app is Flutter, so most Dart code is
-shared, but iOS needs its own config, some plugin substitutions, and a
-platform-specific Guided Drive design.
+shared. iOS needs its own config and a few plugin guards.
+
+## Decision (final)
+
+- **Primary experience on both platforms: in-app "Follow route".** The UI
+  highlights the **Follow route** button as the obvious action; "Open in Maps"
+  is a secondary, de-emphasised option.
+- **Android is unchanged** — it keeps its existing hands-free Guided Drive
+  (floating card + auto-advance). We are NOT removing it.
+- **iOS ships Follow-route + a simple one-shot "Open in Maps"** (Google Maps via
+  `comgooglemaps://`, Apple Maps fallback). No hands-free Guided Drive, no
+  floating card, no background auto-launch on iOS — those are Apple platform
+  limits, and we're intentionally not replicating them.
 
 ## 0. Reality check — parity
 
 | Feature | iOS status |
 | --- | --- |
 | Record route, mark stops, save, list, delete | Works as-is |
-| Share route (file / KML / Maps link) | Works (share sheet is native) |
-| In-app Google Map + follow mode + alerts | Works (needs iOS Maps key) |
+| Share route (file / KML / Maps link) + tap-to-import | Works (share sheet is native) |
+| In-app Google Map + **Follow route** + alerts (the primary feature) | Works (needs iOS Maps key) |
 | Background / screen-off recording | Works, via iOS background location (needs "Always" permission + background mode) |
-| Hands-free Guided Drive + floating card | NOT possible on iOS. Replace with tap-a-notification per leg |
-| Auto-launch next leg from background | NOT possible on iOS (Apple forbids it) |
+| "Open in Maps" one-shot hand-off | Works (`comgooglemaps://` + Apple Maps fallback; a foreground tap, which iOS allows) |
+| Hands-free Guided Drive + floating card | Not on iOS (Apple forbids background app-launch / overlays). Android keeps it; iOS omits it. |
 
 ## 1. Prerequisites
 
@@ -48,18 +59,23 @@ platform-specific Guided Drive design.
 
 ## 5. Dart code changes (make it build + behave on iOS)
 
-- [ ] **Guard Android-only plugins** with `Platform.isAndroid`:
-      all `FlutterOverlayWindow.*` and `FlutterForegroundTask.*` calls.
-- [ ] **Navigation launch:** on iOS use
-      `comgooglemaps://?daddr=<lat>,<lng>&directionsmode=driving` (Google Maps app)
-      or `http://maps.apple.com/?daddr=<lat>,<lng>&dirflg=d` (Apple Maps fallback).
-      The `google.navigation:` intent is Android-only.
-- [ ] **Guided Drive (iOS design):** geofence each stop → on arrival fire a
-      **local notification** ("Reached stop N — tap to navigate to the next")
-      → user taps → open Maps for the next leg. No floating card, no auto-launch.
-- [ ] Add **flutter_local_notifications** for the tap-to-advance prompts.
-- [ ] **Background location:** configure geolocator's iOS settings
-      (`allowBackgroundLocationUpdates = true`, `pauseLocationUpdatesAutomatically = false`, `showBackgroundLocationIndicator = true`).
+- [ ] **Guard Android-only Guided Drive bits** with `Platform.isAndroid` so they
+      simply don't run on iOS: all `FlutterOverlayWindow.*` calls, and the
+      hands-free auto-advance / retry engine. On iOS these are never invoked.
+- [ ] **"Open in Maps" (both platforms, one-shot):** on iOS use
+      `comgooglemaps://?daddr=<lat>,<lng>&directionsmode=driving` (Google Maps app),
+      falling back to `http://maps.apple.com/?daddr=<lat>,<lng>&dirflg=d`
+      (Apple Maps) if Google Maps isn't installed. This is a user-initiated
+      foreground tap, which iOS allows. The `google.navigation:` intent stays
+      Android-only.
+- [ ] **No geofence/notification tap-to-advance needed** — we are NOT building a
+      per-leg iOS Guided Drive. iOS relies on in-app **Follow route** plus the
+      one-shot "Open in Maps". (So no `flutter_local_notifications` requirement.)
+- [ ] **Background location (for recording + Follow):** configure geolocator's
+      iOS settings (`allowBackgroundLocationUpdates = true`,
+      `pauseLocationUpdatesAutomatically = false`, `showBackgroundLocationIndicator = true`).
+- [ ] **UI:** make the **Follow route** button the visually primary action;
+      de-emphasise "Open in Maps" (shared UI, applies to both platforms).
 
 ## 6. Plugin iOS notes
 

@@ -9,11 +9,18 @@ at the bottom of each section.
 - App is **RouteShare**; Android application ID `com.gopikramadhati.routeshare` (permanent).
 - Positioned as a **breadcrumb-trail navigator**: record a trail, follow it back
   with the built-in map (no external app needed); Google Maps hand-off is optional.
-- **Cross-platform strategy (decided):** Android keeps **hands-free Guided Drive +
-  floating card**; iPhone will use **tap-a-notification to advance each leg**.
-  Reason: iOS has no draw-over-apps overlay and forbids launching another app (or
-  itself) from the background, so true hands-free is impossible on iOS. Full parity
-  would mean dropping to tap-to-advance on both; we chose best-per-platform instead.
+- **Cross-platform strategy (final):** the **in-app "Follow route" is the primary
+  experience on both platforms** — the UI highlights the Follow route button and
+  de-emphasises "Open in Maps". This makes the core loop truly identical on
+  Android and iOS (Follow is pure Flutter — no overlay, no background app-launch).
+  - **Android is unchanged:** it keeps its existing **hands-free Guided Drive**
+    (floating card + auto-advance) as an extra. Not removed.
+  - **iOS:** ships Follow-route + a simple one-shot **"Open in Maps"**
+    (`comgooglemaps://`, Apple Maps fallback — a foreground tap, allowed by iOS).
+    No hands-free Guided Drive / overlay / background auto-launch on iOS (Apple
+    platform limits; intentionally not replicated).
+  - Apple Maps vs Google Maps doesn't affect the hands-free limit — that's an
+    OS rule on background app-launch, identical for either target.
 - Goals order: (1) publish on Play Store, (2) iPhone version, (3) open source after testing.
 
 ## Guided Drive (Android)

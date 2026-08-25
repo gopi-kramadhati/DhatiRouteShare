@@ -3558,12 +3558,21 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                               label: Text(isFollowing
                                   ? 'Stop Following'
                                   : 'Follow Route'),
+                              // Follow route is the primary, in-app experience —
+                              // highlight it in brand cyan when a route is ready.
                               style: isFollowing
                                   ? ElevatedButton.styleFrom(
                                       backgroundColor: Colors.orange,
                                       foregroundColor: Colors.white,
                                     )
-                                  : null,
+                                  : hasLoadedRoute
+                                      ? ElevatedButton.styleFrom(
+                                          backgroundColor: kBrandCyan,
+                                          foregroundColor: Colors.white,
+                                          textStyle: const TextStyle(
+                                              fontWeight: FontWeight.bold),
+                                        )
+                                      : null,
                             ),
 
                           // Saved Routes
@@ -3585,16 +3594,16 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                               label: const Text('Import'),
                             ),
 
-                          // Share on Google Maps (visible when a route is available)
+                          // Open in Maps (secondary, de-emphasised — Follow route
+                          // above is the primary in-app experience)
                           if (!isRecording && !isPaused &&
                               (hasLoadedRoute || routePoints.isNotEmpty))
-                            ElevatedButton.icon(
+                            OutlinedButton.icon(
                               onPressed: _shareOnGoogleMaps,
                               icon: const Icon(Icons.map_outlined),
-                              label: const Text('Google Maps'),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color(0xFF4285F4),
-                                foregroundColor: Colors.white,
+                              label: const Text('Open in Maps'),
+                              style: OutlinedButton.styleFrom(
+                                foregroundColor: kBrandNavy,
                               ),
                             ),
 
