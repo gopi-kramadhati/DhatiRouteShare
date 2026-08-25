@@ -457,19 +457,13 @@ class AboutScreen extends StatelessWidget {
           Center(
             child: Column(
               children: [
-                Container(
-                  width: 84,
-                  height: 84,
-                  decoration: BoxDecoration(
-                    color: kBrandNavy.withValues(alpha: 0.06),
-                    shape: BoxShape.circle,
-                  ),
-                  alignment: Alignment.center,
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(20),
                   child: Image.asset(
-                    'assets/images/logo.png',
-                    width: 54,
-                    height: 54,
-                    fit: BoxFit.contain,
+                    'assets/images/app_logo.png',
+                    width: 84,
+                    height: 84,
+                    fit: BoxFit.cover,
                     errorBuilder: (_, _, _) => const Icon(
                         Icons.navigation, color: kBrandNavy, size: 46),
                   ),
