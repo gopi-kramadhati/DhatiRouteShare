@@ -3607,16 +3607,15 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                               ),
                             ),
 
-                          // Export as KML
+                          // Export as KML (secondary, de-emphasised)
                           if (!isRecording && !isPaused &&
                               (hasLoadedRoute || routePoints.isNotEmpty))
-                            ElevatedButton.icon(
+                            OutlinedButton.icon(
                               onPressed: _exportAsKml,
                               icon: const Icon(Icons.download_outlined),
                               label: const Text('Export KML'),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color(0xFF34A853),
-                                foregroundColor: Colors.white,
+                              style: OutlinedButton.styleFrom(
+                                foregroundColor: kBrandNavy,
                               ),
                             ),
                         ],
